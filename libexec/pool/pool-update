@@ -4,7 +4,6 @@
 ##
 ## --calldata   only returns calldata instead of submitting the update.
 ##
-set -ex
 for i in "$@"; do
   case $i in
     --calldata)
