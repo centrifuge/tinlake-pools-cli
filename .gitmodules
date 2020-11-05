@@ -4,3 +4,9 @@
 [submodule "lib/tinlake-auth"]
 	path = lib/tinlake-auth
 	url = https://github.com/centrifuge/tinlake-auth
+[submodule "pools/kovan"]
+	path = pools/kovan
+	url = https://github.com/centrifuge/tinlake-pools-kovan
+[submodule "pools/mainnet"]
+	path = pools/mainnet
+	url = https://github.com/centrifuge/tinlake-pools-mainnet
