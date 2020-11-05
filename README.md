@@ -23,6 +23,8 @@ Commands:
    help            print help about pool(1) or one of its subcommands
    list            list available pools locally
    update          update pool metadata
+    --skip-check   skip checking the registry
+    --calldata     generate calldata instead of executing the transaction
 
 Report bugs to <https://github.com/centrifuge/tinlake-pool-config>.
 ```
