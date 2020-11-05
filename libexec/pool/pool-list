@@ -26,5 +26,5 @@ for p in $POOL_METADATA; do
   UPDATE=$([[ $CHECK == "yes" ]] && pool check-registry $ROOT 2> /dev/null)
   [[ $UPDATE == "out of sync" ]] && echo -e -n "${RED}[ UPDATE ]${NC} "
   [[ $UPDATE == "up to date" ]] && echo -e -n "${GREEN}[   OK   ]${NC} "
-  echo "$ROOT $(echo $META | jq -r ".slug")"
+  echo "$ROOT $(echo $META | jq -r ".metadata.slug")"
 done
