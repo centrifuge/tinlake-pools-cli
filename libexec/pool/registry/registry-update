@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-### pool-update -- update pool metadata
-## Usage: pool update <root> [--skip-check] [--calldata]
-##
-## --calldata   only returns calldata instead of submitting the update.
+### registry-update -- update pool metadata
+### Usage: pool update <root> [--skip-check] [--calldata]
+###
+### --calldata   only returns calldata instead of submitting the update.
 ##
 for i in "$@"; do
   case $i in
