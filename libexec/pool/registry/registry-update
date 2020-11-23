@@ -1,13 +1,27 @@
 #!/usr/bin/env bash
-### registry-update -- update pool metadata
-### Usage: pool update <root> [--skip-check] [--calldata]
+### registry-update -- update pool list & pool metadata
+### Usage: pool update <root> [<args>]
+###    or: pool update [<args>]
 ###
-### --calldata   only returns calldata instead of submitting the update.
-##
+### Note: for updating pool list, always run `pool registry merge` first
+###
+### Options:
+###   -C, --calldata      only returns calldata instead of submitting the update.
+###   -S, --skip-check    skip checking if data is modified on chain
+###
+
 for i in "$@"; do
   case $i in
+    -C)
+      CALLDATA=yes
+      shift
+      ;;
     --calldata)
       CALLDATA=yes
+      shift
+      ;;
+    -S)
+      SKIP_CHECK=yes
       shift
       ;;
     --skip-check)
@@ -21,12 +35,21 @@ for i in "$@"; do
   esac
 done
 
-[[ $SKIP_CHECK != "yes" ]] && [[ $(pool check-registry $1) == "up to date" ]] && echo "up to date" && exit
+POOL_ADDRESS=$1
+if [ $# -lt 1 ]; then
+  [[ $SKIP_CHECK != "yes" ]] && [[ $(pool registry check) == "up to date" ]] && echo "up to date" && exit
+  POOL_ADDRESS=$POOL_REGISTRY_ADDRESS
+  LIVE=false
+  POOL_METADATA=out/pools.json
+  POOL_SLUG='"registry"'
+else
+  [[ $SKIP_CHECK != "yes" ]] && [[ $(pool registry check $1) == "up to date" ]] && echo "up to date" && exit
+  LIVE=true
+  POOL_METADATA="$BASE_DIR/pools/$NETWORK/metadata/$1.json"
+  POOL_SLUG="\"$(cat $POOL_METADATA | jq -r ".metadata.slug")\""
+fi
 
-LIVE=true
-POOL_METADATA="$BASE_DIR/pools/$NETWORK/metadata/$1.json"
-POOL_SLUG="\"$(cat $POOL_METADATA | jq -r ".metadata.slug")\""
 METADATA_HASH="\"$(pool ipfs save $POOL_METADATA)\""
 
-[[ $CALLDATA == "yes" ]] && seth calldata 'file(address, bool, string, string)' $1 $LIVE $POOL_SLUG $METADATA_HASH && exit
-seth send $(pool --registry-address) 'file(address, bool, string, string)' $1 $LIVE $POOL_SLUG $METADATA_HASH
+[[ $CALLDATA == "yes" ]] && seth calldata 'file(address, bool, string, string)' $POOL_ADDRESS $LIVE $POOL_SLUG $METADATA_HASH
+[[ $CALLDATA != "yes" ]] && seth send $(pool --registry-address) 'file(address, bool, string, string)' $POOL_ADDRESS $LIVE $POOL_SLUG $METADATA_HASH

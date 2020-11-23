@@ -14,8 +14,6 @@ contract PoolRegistry is Auth {
     event PoolCreated(address pool, bool live, string name, string data);
     event PoolUpdated(address pool, bool live, string name, string data);
 
-
-
     Pool[] public pools;
     mapping (address => uint) public lookup;
 

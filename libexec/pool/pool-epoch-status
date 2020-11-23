@@ -55,9 +55,7 @@ let config = {
   rpcUrl: process.env['ETH_RPC_URL']
 }
 
-const watcher = multicall.createWatcher(calls,
-  config
-);
+const watcher = multicall.createWatcher(calls, config);
 
 let formatNum = (num) => {
   return new BigNumber(num.toString()).toFormat(2,{

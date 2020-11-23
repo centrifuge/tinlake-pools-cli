@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+### registry-read -- read from the onchain registry
+### Usage: pool registry read
+###    or: pool registry read <root>
+
+if [ $# -lt 1 ]; then
+    DATA=$(seth call $POOL_REGISTRY_ADDRESS 'pools(uint)(address, bool, string, string)' 0 2> /dev/null)
+else
+    DATA=$(seth call $POOL_REGISTRY_ADDRESS 'find(address)(bool, string, string)' $1 2> /dev/null)
+fi
+
+[[ $DATA ]] || $(echo "Pool not found. Likely an incorrect address or it has not been pushed yet." >> /dev/stderr && exit)
+echo $DATA
