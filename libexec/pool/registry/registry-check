@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ### registry-check -- check if the onchain registry needs an update
-### Usage: pool check-registry <root>
+### Usage: pool registry check <root>
 
 display_usage() {
     echo "Usage: pool registry check <root>"

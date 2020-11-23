@@ -1,0 +1,42 @@
+#!/usr/bin/env node
+/// registry-merge -- Merge all pool metadata files and put ouput in out/
+/// Usage: pool registry merge
+
+const fs = require('fs');
+const execSync = require('child_process').execSync
+
+function loadMetadata(folder) {
+  let pools = []
+  fs.readdirSync(folder).forEach(function(file) {
+    if (file.match(/\.json$/) !== null) {
+      let data = require(folder + file)
+      if (Array.isArray(data)) pools = [...pools, ...data]
+      else pools.push(data)
+    }
+  })
+  return pools
+}
+
+const poolMetadata = process.env.POOL_METADATA_DIR+'/'
+const pools = loadMetadata(poolMetadata)
+const poolList = JSON.stringify(pools.reduce((l, p) => {
+    if (p.addresses) l[p.addresses['ROOT_CONTRACT']] = p
+    return l
+},{}))
+
+execSync('mkdir -p '+process.cwd()+'/out/')
+
+const poolModule = "module.exports = "+JSON.stringify(pools)
+fs.writeFile(process.cwd()+'/out/index.js', poolModule, (err) => {
+    if (err) {
+        throw err
+    }
+})
+
+
+fs.writeFile(process.cwd()+ '/out/pools.json', poolList, (err) => {
+    if (err) {
+        throw err
+    }
+})
+
