@@ -12,7 +12,7 @@ if [ $# -lt 1 ]; then
     exit
 fi
 
-POOL_METADATA="$POOL_METADATA_DIR/$1.json"
+POOL_METADATA="$POOL_BASE_DIR/metadata/$1.json"
 POOL_SLUG="$(cat $POOL_METADATA | jq -r ".metadata.slug")"
 METADATA_HASH="$(pool ipfs hash $POOL_METADATA)"
 DATA=$(pool registry read $1)

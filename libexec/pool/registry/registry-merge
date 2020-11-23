@@ -17,7 +17,7 @@ function loadMetadata(folder) {
   return pools
 }
 
-const poolMetadata = process.env.POOL_METADATA_DIR+'/'
+const poolMetadata = process.env.POOL_BASE_DIR+'/metadata/'
 const pools = loadMetadata(poolMetadata)
 const poolList = JSON.stringify(pools.reduce((l, p) => {
     if (p.addresses) l[p.addresses['ROOT_CONTRACT']] = p

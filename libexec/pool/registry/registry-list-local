@@ -20,7 +20,7 @@ RED='\033[1;33m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
-POOL_METADATA="$POOL_METADATA_DIR/0x*.json"
+POOL_METADATA="$POOL_BASE_DIR/metadata/0x*.json"
 for p in $POOL_METADATA; do
   META=$(cat $p)
   ROOT=$(echo $META | jq -r ".addresses.ROOT_CONTRACT")

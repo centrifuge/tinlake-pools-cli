@@ -6,19 +6,12 @@
 ### Manage Tinlake pools the good old fashioned way
 ###
 
-export BASE_DIR="${BASE_DIR:-"$(cd "${0%/*}"&&pwd)/../.."}"
-export POOL_CONFIG="${POOL_CONFIG:-"$BASE_DIR/config.json"}"
-
-
+export POOL_BASE_DIR="${POOL_BASE_DIR:-"$(cd "${0%/*}"&&pwd)/../.."}"
 set -e
 
 if [[ $2 = --help ]]; then
   exec "${0##*/}" help -- "$1"
 elif [[ $1 = -* ]] && command -v "${0##*/}-$1" &>/dev/null; then
-  export NETWORK=${NETWORK:-$(seth chain)}
-  if [[ $NETWORK = "ethlive" ]]; then
-    export NETWORK="mainnet"
-  fi
   exec "${0##*/}-$1" "${@:2}"
 fi
 
