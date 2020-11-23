@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /// pool-ipfs -- read & save files on IPFS using Pinata
 /// Usage: pool ipfs save <path>
-///    or: pool ipfs read <path>
 ///    or: pool ipfs hash <path>
+///    or: pool ipfs read <hash>
 
 const process = require('process')
 
@@ -21,7 +21,6 @@ if (process.argv.length < 4) {
 }
 
 const action = process.argv[2]
-const file = fs.createReadStream(process.argv[3])
 
 const printErrAndExit = (err) => {
   console.error(err)
@@ -33,12 +32,14 @@ const printAndExit = (msg) => {
 }
 
 function hash() {
+  const file = fs.createReadStream(process.argv[3])
   Hash.of(file).then((hash) => {
     printAndExit(hash)
   }).catch(printErrAndExit)
 }
 
 function save() {
+    const file = fs.createReadStream(process.argv[3])
     const pinata = pinataSDK(process.env['PINATA_API_KEY'], process.env['PINATA_SECRET_KEY'])
 
 
@@ -67,9 +68,10 @@ function save() {
 }
 
 function read() {
-  printErrAndExit("not implemented yet")
+    fetch(`https://cloudflare-ipfs.com/ipfs/${process.argv[3]}`).then((res) => {
+      return res.text()
+    }).then(printAndExit).catch(printErrAndExit)
 }
-
 
 if (action == 'save') save()
 else if (action == 'read') read()

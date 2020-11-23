@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 ### registry-list-local -- list available pools locally
-### Usage: pool registry list-local [--check]
+### Usage: pool registry list --local [--check]
+###    or: pool registry list --remote [--check]
 
 for i in "$@"; do
   case $i in
