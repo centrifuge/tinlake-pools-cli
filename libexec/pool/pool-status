@@ -1,0 +1,129 @@
+#!/usr/bin/env node
+/// pool-status -- print a short summary for all known pools
+/// Usage: pool status
+
+const fs = require('fs')
+const execSync = require('child_process').execSync
+const fetch = require('node-fetch')
+const multicall = require('@makerdao/multicall')
+const BigNumber = require('bignumber.js')
+const registryAddr = process.env['POOL_REGISTRY_ADDRESS']
+const poolConfig = require(process.env['POOL_BASE_DIR']+'/out/index.js')
+
+let pools = poolConfig.reduce((l, p) => {
+  if (p.version < 3) return l
+  let addr = p.addresses
+
+  let data = {
+      name: p.metadata.name,
+      root: addr.ROOT_CONTRACT,
+      juniorTranche: addr.JUNIOR_TRANCHE,
+      seniorTranche: addr.SENIOR_TRANCHE,
+      juniorToken: addr.JUNIOR_TOKEN,
+      seniorToken: addr.SENIOR_TOKEN,
+      assessor: addr.ASSESSOR,
+  }
+  l[data.root] = data
+  return l
+}, {})
+
+let calls = []
+Object.values(pools).forEach(p => {
+    calls.push({
+      target: p.juniorTranche,
+      call: ['totalSupply()(uint)'],
+      returns: [[`${p.root}-juniorSupply`, val => val ]]
+    })
+    calls.push({
+      target: p.juniorTranche,
+      call: ['totalRedeem()(uint)'],
+      returns: [[`${p.root}-juniorRedeem`, val => val ]]
+    })
+    calls.push({
+      target: p.seniorTranche,
+      call: ['totalSupply()(uint)'],
+      returns: [[`${p.root}-seniorSupply`, val => val ]]
+    })
+    calls.push({
+      target: p.seniorTranche,
+      call: ['totalRedeem()(uint)'],
+      returns: [[`${p.root}-seniorRedeem`, val => val ]]
+    })
+    calls.push({
+      target: p.assessor,
+      call: ['calcTokenPrices()(uint, uint)'],
+      returns: [
+        [`${p.root}-juniorTokenPrice`, val => val ],
+        [`${p.root}-seniorTokenPrice`, val => val ],
+    ]})
+    calls.push({
+      target: p.seniorToken,
+      call: ['totalSupply()(uint)'],
+      returns: [
+        [`${p.root}-seniorTotalSupply`, val => val ],
+    ]})
+    calls.push({
+      target: p.juniorToken,
+      call: ['totalSupply()(uint)'],
+      returns: [
+        [`${p.root}-juniorTotalSupply`, val => val ],
+    ]})
+
+
+})
+
+
+let config = {
+  multicallAddress: "0xeefba1e63905ef1d7acba5a8513c70307c1ce441",
+  rpcUrl: process.env['ETH_RPC_URL']
+}
+
+const watcher = multicall.createWatcher(calls, config);
+
+
+let weiToDecimal = (num) => { return new BigNumber(num.toString()).div(new BigNumber('1000000000000000000')) }
+
+let rayToDecimal = (num) => { return new BigNumber(num.toString()).div(new BigNumber('1000000000000000000000000000')) }
+
+
+let formatWeiNum = (num) => {
+  return formatNum(weiToDecimal(num))}
+
+let formatNum = (num, decimals) => {
+  decimals = decimals ? decimals : 2
+  return num.toFormat(decimals, {
+    decimalSeparator: '.',
+    groupSeparator: ',',
+    groupSize: 3,})
+}
+
+let printPoolDetails = (pool) => {
+  console.log('-'.repeat(80))
+  console.log(`${pool.name} (${pool.root})\n`)
+  console.log(`Junior:\n\tSupply: ${formatWeiNum(pool.juniorSupply)} Redeem: ${formatWeiNum(pool.juniorRedeem)}`)
+
+  let juniorValue = rayToDecimal(pool.juniorTokenPrice).times(weiToDecimal(pool.juniorTotalSupply))
+  console.log(`\tJunior:  Price: ${formatNum(rayToDecimal(pool.juniorTokenPrice), 4)} Value: ${formatNum(juniorValue)}`)
+
+  console.log(`Senior:\n\tSupply: ${formatWeiNum(pool.seniorSupply)} Redeem: ${formatWeiNum(pool.seniorRedeem)}`)
+
+  let seniorValue = rayToDecimal(pool.seniorTokenPrice).times(weiToDecimal(pool.seniorTotalSupply))
+  console.log(`\tSenior:  Price: ${formatNum(rayToDecimal(pool.seniorTokenPrice), 4)} Value: ${formatNum(seniorValue)}`)
+
+
+}
+
+watcher.subscribe(update => {
+  let event = update.type.split('-')
+  pools[event[0]][event[1]] = update.value
+});
+
+
+watcher.start().then(function () {
+  Object.values(pools).forEach(printPoolDetails)
+  process.exit()
+}).catch(err => {
+  console.error(err)
+  process.exit(1)
+})
+
