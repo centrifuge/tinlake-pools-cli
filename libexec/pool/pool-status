@@ -97,20 +97,25 @@ let formatNum = (num, decimals) => {
     groupSize: 3,})
 }
 
+let printInYellow = (txt) => console.log("\x1b[33m%s\x1b[0m", txt)
+
 let printPoolDetails = (pool) => {
   console.log('-'.repeat(80))
   console.log(`${pool.name} (${pool.root})\n`)
-  console.log(`Junior:\n\tSupply: ${formatWeiNum(pool.juniorSupply)} Redeem: ${formatWeiNum(pool.juniorRedeem)}`)
-
+  console.log(`Junior:`)
+  if (pool.juniorSupply > 0 || pool.juniorRedeem > 0) {
+    printInYellow(`\tSupply: ${formatWeiNum(pool.juniorSupply)} Redeem: ${formatWeiNum(pool.juniorRedeem)}`)
+  }
   let juniorValue = rayToDecimal(pool.juniorTokenPrice).times(weiToDecimal(pool.juniorTotalSupply))
-  console.log(`\tJunior:  Price: ${formatNum(rayToDecimal(pool.juniorTokenPrice), 4)} Value: ${formatNum(juniorValue)}`)
 
-  console.log(`Senior:\n\tSupply: ${formatWeiNum(pool.seniorSupply)} Redeem: ${formatWeiNum(pool.seniorRedeem)}`)
+  console.log(`\tPrice: ${formatNum(rayToDecimal(pool.juniorTokenPrice), 4)} Value: ${formatNum(juniorValue)}`)
 
+  console.log(`Senior:`)
+  if (pool.seniorSupply > 0 || pool.seniorRedeem > 0) {
+    printInYellow(`\tSupply: ${formatWeiNum(pool.seniorSupply)} Redeem: ${formatWeiNum(pool.seniorRedeem)}`)
+  }
   let seniorValue = rayToDecimal(pool.seniorTokenPrice).times(weiToDecimal(pool.seniorTotalSupply))
-  console.log(`\tSenior:  Price: ${formatNum(rayToDecimal(pool.seniorTokenPrice), 4)} Value: ${formatNum(seniorValue)}`)
-
-
+  console.log(`\tPrice: ${formatNum(rayToDecimal(pool.seniorTokenPrice), 4)} Value: ${formatNum(seniorValue)}`)
 }
 
 watcher.subscribe(update => {
