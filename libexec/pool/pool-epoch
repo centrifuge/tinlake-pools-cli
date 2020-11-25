@@ -1,0 +1,148 @@
+#!/usr/bin/env node
+/// pool-epoch -- check epoch status and close epochs
+/// Usage: pool epoch list
+///    or: pool epoch close <pool id>
+
+const fs = require('fs')
+const execSync = require('child_process').execSync
+const fetch = require('node-fetch')
+const multicall = require('@makerdao/multicall')
+const BigNumber = require('bignumber.js')
+const registryAddr = process.env['POOL_REGISTRY_ADDRESS']
+const poolConfig = require(process.env['POOL_BASE_DIR']+'/out/index.js')
+
+let config = {
+  multicallAddress: "0xeefba1e63905ef1d7acba5a8513c70307c1ce441",
+  rpcUrl: process.env['ETH_RPC_URL']
+}
+
+let pools = poolConfig.reduce((l, p) => {
+  if (p.version < 3) return l
+  let addr = p.addresses
+
+  let data = {
+      name: p.metadata.name,
+      root: addr.ROOT_CONTRACT,
+      juniorTranche: addr.JUNIOR_TRANCHE,
+      seniorTranche: addr.SENIOR_TRANCHE,
+      coordinator: addr.COORDINATOR,
+  }
+  l[data.root] = data
+  return l
+}, {})
+
+
+// TODO: move these to a helber lib
+
+let printInYellow = (txt) => console.log("\x1b[33m%s\x1b[0m", txt)
+
+let weiToDecimal = (num) => { return num.div(new BigNumber('1000000000000000000')) }
+
+let rayToDecimal = (num) => { return num.div(new BigNumber('1000000000000000000000000000')) }
+
+
+let formatWeiNum = (num) => {
+  return formatNum(weiToDecimal(num))}
+
+let formatNum = (num, decimals) => {
+  decimals = decimals ? decimals : 2
+  return num.toFormat(decimals, {
+    decimalSeparator: '.',
+    groupSeparator: ',',
+    groupSize: 3,})
+}
+
+let calls = []
+Object.values(pools).forEach(p => {
+    calls.push({
+      target: p.juniorTranche,
+      call: ['totalSupply()(uint)'],
+      returns: [[`${p.root}-juniorSupply`]]
+    })
+    calls.push({
+      target: p.juniorTranche,
+      call: ['totalRedeem()(uint)'],
+      returns: [[`${p.root}-juniorRedeem`]]
+    })
+    calls.push({
+      target: p.seniorTranche,
+      call: ['totalSupply()(uint)'],
+      returns: [[`${p.root}-seniorSupply`]]
+    })
+    calls.push({
+      target: p.seniorTranche,
+      call: ['totalRedeem()(uint)'],
+      returns: [[`${p.root}-seniorRedeem`]]
+    })
+    calls.push({
+      target: p.coordinator,
+      call: ['lastEpochClosed()(uint)'],
+      returns: [[`${p.root}-lastEpochClosed`]]
+    })
+    calls.push({
+      target: p.coordinator,
+      call: ['minimumEpochTime()(uint)'],
+      returns: [[`${p.root}-minimumEpochTime`]]
+    })
+    calls.push({
+      call: ['getCurrentBlockTimestamp()(uint256)'],
+      returns: [[`${p.root}-timestamp`]]
+    })
+})
+
+const watcher = multicall.createWatcher(calls, config);
+
+function printEpochStatus(pool) {
+  const lastEpochClosed = pool.lastEpochClosed
+  const minimumEpochTime = pool.minimumEpochTime
+  const ready = pool.timestamp.gt(lastEpochClosed.plus(minimumEpochTime))
+  if (pool.seniorRedeem.plus(pool.seniorSupply).plus(pool.juniorRedeem).plus(pool.juniorSupply).gt(new BigNumber('0'))) {
+    printInYellow(`${pool.name} (${pool.root})`)
+    if (pool.juniorSupply > 0 || pool.juniorRedeem > 0) {
+      printInYellow(`Junior Supply: ${formatWeiNum(pool.juniorSupply)} Redeem: ${formatWeiNum(pool.juniorRedeem)}`)
+    }
+
+    if (pool.seniorSupply > 0 || pool.seniorRedeem > 0) {
+      printInYellow(`Senior Supply: ${formatWeiNum(pool.seniorSupply)} Redeem: ${formatWeiNum(pool.seniorRedeem)}`)
+    }
+    printInYellow(`Ready for close: ${ready}`)
+  } else {
+    console.log(`${pool.name} (${pool.root})`)
+    console.log('no pending orders')
+  }
+}
+
+function closeEpoch() {
+  if (process.argv.length < 3) {
+    console.error("missing argument <pool id>")
+    process.exit(1)
+  }
+  execSync(`seth send ${pools[process.argv[3]].coordinator} 'closeEpoch()'`,    {stdio: 'inherit'})
+}
+
+function epochStatus() {
+  watcher.subscribe(update => {
+    let event = update.type.split('-')
+    pools[event[0]][event[1]] = new BigNumber(update.value.toString())
+  });
+
+  watcher.start().then(function () {
+    Object.values(pools).forEach(printEpochStatus)
+    process.exit()
+  }).catch(err => {
+    console.error(err)
+    process.exit(1)
+  })
+}
+
+if (process.argv[2] == 'close') {
+  closeEpoch()
+} else if (process.argv.length == 2) {
+  epochStatus()
+} else {
+  console.error("Invalid usage of pool epoch")
+  execSync(`pool help epoch`,    {stdio: 'inherit'})
+  process.exit(1)
+}
+
+
