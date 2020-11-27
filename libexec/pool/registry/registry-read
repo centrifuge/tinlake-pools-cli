@@ -2,12 +2,50 @@
 ### registry-read -- read from the onchain registry
 ### Usage: pool registry read
 ###    or: pool registry read <root>
+###    or: pool registry read <root> [live|name|data]
 
+
+FIELD=""
+for i in "$@"; do
+  case $i in
+    live)
+      FIELD=live
+      shift
+      ;;
+    name)
+      FIELD=name
+      shift
+      ;;
+    data)
+      FIELD=data
+      shift
+      ;;
+    *)
+      shift
+      set -- "$@" "$i"
+      ;;
+  esac
+done
+
+OFFSET=0
 if [ $# -lt 1 ]; then
     DATA=$(seth call $POOL_REGISTRY_ADDRESS 'pools(uint)(address, bool, string, string)' 0 2> /dev/null)
+    OFFSET=1
 else
     DATA=$(seth call $POOL_REGISTRY_ADDRESS 'find(address)(bool, string, string)' $1 2> /dev/null)
 fi
 
 [[ $DATA ]] || $(echo "Pool not found. Likely an incorrect address or it has not been pushed yet." >> /dev/stderr && exit)
-echo $DATA
+
+POOL_DATA=($(echo $DATA | tr " " "\n"))
+
+if [[ $FIELD == "live" ]]; then
+  echo ${POOL_DATA[0+$OFFSET]}
+elif [[ $FIELD == "name" ]]; then
+  echo ${POOL_DATA[1+$OFFSET]}
+elif [[ $FIELD == "data" ]]; then
+  echo ${POOL_DATA[2+$OFFSET]}
+else
+  echo $DATA
+fi
+
