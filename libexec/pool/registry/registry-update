@@ -52,4 +52,4 @@ fi
 METADATA_HASH="\"$(pool ipfs save $POOL_METADATA)\""
 
 [[ $CALLDATA == "yes" ]] && seth calldata 'file(address, bool, string, string)' $POOL_ADDRESS $LIVE $POOL_SLUG $METADATA_HASH
-[[ $CALLDATA != "yes" ]] && seth send $(pool --registry-address) 'file(address, bool, string, string)' $POOL_ADDRESS $LIVE $POOL_SLUG $METADATA_HASH
+[[ $CALLDATA != "yes" ]] && seth send $REGISTRY_ADDRESS 'file(address, bool, string, string)' $POOL_ADDRESS $LIVE $POOL_SLUG $METADATA_HASH

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /// pool-epoch -- check epoch status and close epochs
-/// Usage: pool epoch list
+/// Usage: pool epoch
 ///    or: pool epoch close <pool id>
 
 const fs = require('fs')
