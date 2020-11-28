@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 ### registry-read -- read from the onchain registry
 ### Usage: pool registry read
+###    or: pool registry read [live|name|data]
 ###    or: pool registry read <root>
 ###    or: pool registry read <root> [live|name|data]
-
 
 FIELD=""
 for i in "$@"; do
@@ -29,10 +29,10 @@ done
 
 OFFSET=0
 if [ $# -lt 1 ]; then
-    DATA=$(seth call $POOL_REGISTRY_ADDRESS 'pools(uint)(address, bool, string, string)' 0 2> /dev/null)
+    DATA=$(seth call $POOL_REGISTRY_ADDR 'pools(uint)(address, bool, string, string)' $(seth --to-uint256 0) 2> /dev/null)
     OFFSET=1
 else
-    DATA=$(seth call $POOL_REGISTRY_ADDRESS 'find(address)(bool, string, string)' $1 2> /dev/null)
+    DATA=$(seth call $POOL_REGISTRY_ADDR 'find(address)(bool, string, string)' $1 2> /dev/null)
 fi
 
 [[ $DATA ]] || $(echo "Pool not found. Likely an incorrect address or it has not been pushed yet." >> /dev/stderr && exit)

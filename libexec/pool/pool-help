@@ -2,7 +2,7 @@
 ### pool-help -- print help about pool(1) or one of its subcommands
 ### Usage: pool help [<command>]
 
-BUGS=https://github.com/centrifuge/tinlake-pool-config
+BUGS=https://github.com/centrifuge/tinlake-pools-cli
 
 name=pool
 cmd=${1##*-}
@@ -46,6 +46,20 @@ $(list-commands "${special_commands[@]}")
 Commands:
 
 $(list-commands "${normal_commands[@]}")
+
+
+Configuration Variables:
+
+ETH_CHAIN
+    Current active eth chain (ethlive, kovan), set
+    this to avoid delay introduced by `seth chain`
+
+POOL_BASE_DIR
+    Path to local pool metadata. Used for the registry updates.
+    Defaults to `pwd`
+
+POOL_REGISTRY_ADDR
+    Address of the registry contract for the specific environment
 
 Report bugs to <$BUGS>.
 .

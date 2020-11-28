@@ -8,9 +8,10 @@ const fetch = require('node-fetch')
 const multicall = require('@makerdao/multicall')
 const BigNumber = require('bignumber.js')
 const registryAddr = process.env['POOL_REGISTRY_ADDRESS']
-const poolConfig = require(process.env['POOL_BASE_DIR']+'/out/index.js')
 
-let pools = poolConfig.reduce((l, p) => {
+let poolConfig = JSON.parse(execSync('pool data').toString())
+let pools = Object.keys(poolConfig).reduce((l, p) => {
+  p = poolConfig[p]
   if (p.version < 3) return l
   let addr = p.addresses
 
@@ -73,7 +74,7 @@ Object.values(pools).forEach(p => {
 })
 
 let config = {
-  multicallAddress: "0xeefba1e63905ef1d7acba5a8513c70307c1ce441",
+  multicallAddress: process.env['MULTICALL_ADDR'],
   rpcUrl: process.env['ETH_RPC_URL']
 }
 
