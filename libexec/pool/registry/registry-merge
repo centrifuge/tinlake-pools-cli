@@ -21,6 +21,7 @@ const poolMetadata = process.env.POOL_BASE_DIR+'/metadata/'
 const pools = loadMetadata(poolMetadata)
 const poolList = JSON.stringify(pools.reduce((l, p) => {
     if (p.addresses) l[p.addresses['ROOT_CONTRACT']] = p
+    if (!p.addresses) l[p.metadata.slug] = p
     return l
 },{}))
 
