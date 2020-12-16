@@ -1,0 +1,43 @@
+#!/usr/bin/env node
+/// pool-data -- fetch pool data from IPFS
+/// Usage: pool data [-S|--short]
+///    or: pool data <pool root> [-A|--addresses]
+///    or: pool data <pool root> -a <contract>
+
+const fs = require('fs')
+const execSync = require('child_process').execSync
+const registryAddr = process.env['POOL_REGISTRY_ADDR']
+
+
+let args = process.argv.slice(2,)
+let short, addrOnly, contract
+let root = ""
+
+for (let i = 0; i < args.length; i++) {
+  let arg = args[i]
+  if (i == 0 && arg.indexOf('0x') === 0) root = arg
+  else if (arg === '--short' || arg === '-S') short = true
+  else if (arg === '--addresses' || arg === '-A') addrOnly = true
+  else if (arg === '-a') contract = args[i+1]
+}
+
+let dataHash = execSync(`pool registry read ${root} data`, {stderr: 'inherit'})
+if (!dataHash) process.exit(1)
+
+dataHash = dataHash.toString()
+let dataJSON = execSync(`pool ipfs read ${dataHash}`).toString()
+
+let data = JSON.parse(dataJSON)
+if (root && addrOnly) {
+  Object.keys(data.addresses).forEach((key) =>
+    console.log(`${key}=${data.addresses[key]}`))
+} else if (root && contract) {
+  console.log(data.addresses[contract])
+} else if (short) {
+  Object.keys(data).forEach((key) =>
+    console.log(`${key} ${data[key].metadata.shortName}`))
+} else {
+  console.log(dataJSON)
+}
+
+

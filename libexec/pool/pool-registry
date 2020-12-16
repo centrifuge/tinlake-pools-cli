@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+### pool-registry -- command-line util to manage pool metadata
+### Usage: pool registry <command> [<args>]
+###    or: pool registry help <command>
+###
+### Update pool metadata on chain and on IPFS
+
+set -e
+PATH=${0%/*/*}/pool/registry:$PATH exec registry "$@"

@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+### registry-check -- check if the onchain registry needs an update
+### Usage: pool registry check
+###    or: pool registry check <root>
+
+if [ $# -lt 1 ]; then
+    pool registry merge
+    HASH=$(pool ipfs hash out/pools.json)
+    DATA=$(pool registry read)
+    POOL_DATA=($(echo $DATA | tr " " "\n"))
+    [[ ${POOL_DATA[2]} == $METADATA_HASH ]] && (echo "up to date" && exit) || (echo "out of sync" && exit)
+    exit
+fi
+
+POOL_METADATA="$POOL_BASE_DIR/metadata/$1.json"
+POOL_SLUG="$(cat $POOL_METADATA | jq -r ".metadata.slug")"
+METADATA_HASH="$(pool ipfs hash $POOL_METADATA)"
+DATA=$(pool registry read $1)
+POOL_DATA=($(echo $DATA | tr " " "\n"))
+
+[[ ${POOL_DATA[0]} == "true" ]] && [[ ${POOL_DATA[1]} == $POOL_SLUG ]] && [[ ${POOL_DATA[2]} == $METADATA_HASH ]] && (echo "up to date" && exit) || echo "out of sync"

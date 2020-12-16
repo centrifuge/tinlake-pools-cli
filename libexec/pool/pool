@@ -1,21 +1,20 @@
 #!/usr/bin/env bash
-### pool -- command-line util to manage pool metadata
+### pool -- command-line util to manage pools
 ### Usage: pool <command> [<args>]
 ###    or: pool help <command>
 ###
-### Update pool metadata on chain and on IPFS
+### Manage Tinlake pools the good old fashioned way
 ###
 
-export BASE_DIR="${BASE_DIR:-"$(cd "${0%/*}"&&pwd)/../.."}"
-export POOL_CONFIG="${POOL_CONFIG:-"$BASE_DIR/config.json"}"
+export POOL_BASE_DIR="${POOL_BASE_DIR:-"$(pwd)"}"
+export ETH_CHAIN="${ETH_CHAIN:-"$(seth chain)"}"
 
-if [[ $(seth chain) = "ethlive" ]]; then
-  export NETWORK="mainnet"
-else
-  export NETWORK=${NETWORK:-$(seth chain)}
-fi
+export MULTICALL_ADDR=0xeefba1e63905ef1d7acba5a8513c70307c1ce441
+export POOL_REGISTRY_ADDR=0xddf1c516cf87126c6c610b52fd8d609e67fb6033
 
-# export NETWORK=${NETWORK:-$(seth chain)}
+[[ $ETH_CHAIN == "kovan" ]] &&
+  export MULTICALL_ADDR=0x2cc8688c5f75e365aaeeb4ea8d6a480405a48d2a &&
+  export POOL_REGISTRY_ADDR=0x8FE85CeAe6157C1dfcDD1c5ec99361c9722d97de
 
 set -e
 

@@ -1,0 +1,80 @@
+#!/usr/bin/env node
+/// pool-ipfs -- read & save files on IPFS using Pinata
+/// Usage: pool ipfs save <path>
+///    or: pool ipfs hash <path>
+///    or: pool ipfs read <hash>
+
+const process = require('process')
+
+const fs = require('fs')
+const path = require('path')
+const pinataSDK = require('@pinata/sdk')
+const execSync = require('child_process').execSync
+const fetch = require('node-fetch')
+
+const Hash = require('ipfs-only-hash')
+
+if (process.argv.length < 4) {
+  console.error("Not enough arguments\n")
+  console.error(execSync('pool help ipfs').toString())
+  process.exit(1)
+}
+
+const action = process.argv[2]
+
+const printErrAndExit = (err) => {
+  console.error(err)
+  process.exit(1)
+}
+const printAndExit = (msg) => {
+  console.log(msg)
+  process.exit(0)
+}
+
+function hash() {
+  const file = fs.createReadStream(process.argv[3])
+  Hash.of(file).then((hash) => {
+    printAndExit(hash)
+  }).catch(printErrAndExit)
+}
+
+function save() {
+    const file = fs.createReadStream(process.argv[3])
+    const pinata = pinataSDK(process.env['PINATA_API_KEY'], process.env['PINATA_SECRET_KEY'])
+
+
+    const chain = execSync('seth chain').toString().slice(0,-1)
+    const registryAddr = process.env['POOL_REGISTRY_ADDRESS']
+    const fileName = `${chain}-${registryAddr}-${process.argv[2]}`
+
+    const options = {
+        pinataMetadata: {
+            name: fileName,
+        },
+        pinataOptions: {
+            cidVersion: 0
+        }
+    }
+
+    pinata.pinFileToIPFS(file, options).then((result) => {
+        console.log(result.IpfsHash)
+        return result.IpfsHash})
+    .then((hash) => {
+      return fetch(`https://api.thegraph.com/ipfs/api/v0/pin/add?arg=${hash}`,
+      { method:"POST" })
+      })
+    .then(() => process.exit())
+    .catch(printErrAndExit)
+}
+
+function read() {
+    fetch(`https://cloudflare-ipfs.com/ipfs/${process.argv[3]}`).then((res) => {
+      return res.text()
+    }).then(printAndExit).catch(printErrAndExit)
+}
+
+if (action == 'save') save()
+else if (action == 'read') read()
+else if (action == 'hash') hash()
+else { printErrAndExit('Invalid action') }
+
