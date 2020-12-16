@@ -117,7 +117,7 @@ function closeEpoch() {
     console.error("missing argument <pool id>")
     process.exit(1)
   }
-  execSync(`seth send ${pools[process.argv[3]].coordinator} 'closeEpoch()'`,    {stdio: 'inherit'})
+  execSync(`ETH_GAS=11000000 seth send ${pools[process.argv[3]].coordinator} 'closeEpoch()'`, {stdio: 'inherit'})
 }
 
 function epochStatus() {

@@ -12,7 +12,7 @@ const registryAddr = process.env['POOL_REGISTRY_ADDRESS']
 let poolConfig = JSON.parse(execSync('pool data').toString())
 let pools = Object.keys(poolConfig).reduce((l, p) => {
   p = poolConfig[p]
-  if (p.version < 3) return l
+  if (p.version < 3 || !p.addresses || !p.addresses.ROOT_CONTRACT) return l
   let addr = p.addresses
 
   let data = {
