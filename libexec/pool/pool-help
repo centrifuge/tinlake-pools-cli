@@ -58,8 +58,10 @@ POOL_BASE_DIR
     Path to local pool metadata. Used for the registry updates.
     Defaults to `pwd`
 
-POOL_REGISTRY_ADDR
+REGISTRY_ADDR
     Address of the registry contract for the specific environment
+
+NETWORK: `mainnet` or `kovan`
 
 Report bugs to <$BUGS>.
 .
