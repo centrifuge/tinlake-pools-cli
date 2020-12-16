@@ -7,7 +7,7 @@ const execSync = require('child_process').execSync
 const fetch = require('node-fetch')
 const multicall = require('@makerdao/multicall')
 const BigNumber = require('bignumber.js')
-const registryAddr = process.env['POOL_REGISTRY_ADDRESS']
+const registryAddr = process.env['REGISTRY_ADDRESS']
 
 let poolConfig = JSON.parse(execSync('pool data').toString())
 let pools = Object.keys(poolConfig).reduce((l, p) => {

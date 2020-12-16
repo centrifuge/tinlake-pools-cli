@@ -8,10 +8,14 @@ This repo contains the cli for managing tinlake pools along with an on chain reg
 
 ## Options
 The following environment variables should be set:
-* ETH_NETWORK: `ethlive` or `kovan`
+* NETWORK: `mainnet` or `kovan`
 * POOL_BASE_DIR: default to `pwd`, should be a checkout of tinlake-pools-(mainnet/kovan)
 * PINATA_SECRET_KEY
 * PINATA_API_KEY
+* REGISTRY_ADDRESS
+    Address of the registry contract for the specific environment
+* ETH_CHAIN: defaults to `seth chain`, set to either `kovan` or `ethlive`
+
 
 ## `pool` CLI
 ```
@@ -32,20 +36,6 @@ Commands:
    ipfs            read & save files on IPFS using Pinata
    registry        command-line util to manage pool metadata
    status          print a short summary for all known pools
-
-
-Configuration Variables:
-
-ETH_CHAIN
-    Current active eth chain (ethlive, kovan), set
-    this to avoid delay introduced by ethlive
-
-POOL_BASE_DIR
-    Path to local pool metadata. Used for the registry updates.
-    Defaults to /home/lucasvo/code/tinlake-pools-mainnet
-
-POOL_REGISTRY_ADDRESS
-    Address of the registry contract for the specific environment
 
 Report bugs to <https://github.com/centrifuge/tinlake-pools-cli>.
 ```

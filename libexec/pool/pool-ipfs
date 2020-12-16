@@ -44,7 +44,7 @@ function save() {
 
 
     const chain = execSync('seth chain').toString().slice(0,-1)
-    const registryAddr = process.env['POOL_REGISTRY_ADDRESS']
+    const registryAddr = process.env['REGISTRY_ADDRESS']
     const fileName = `${chain}-${registryAddr}-${process.argv[2]}`
 
     const options = {
