@@ -44,7 +44,7 @@ POOL_BASE_DIR
     Path to local pool metadata. Used for the registry updates.
     Defaults to /home/lucasvo/code/tinlake-pools-mainnet
 
-POOL_REGISTRY_ADDR
+POOL_REGISTRY_ADDRESS
     Address of the registry contract for the specific environment
 
 Report bugs to <https://github.com/centrifuge/tinlake-pools-cli>.
