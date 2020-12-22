@@ -65,7 +65,7 @@ METADATA_HASH="\"$(pool ipfs save $POOL_METADATA)\""
 
 [[ $CALLDATA == "yes" ]] && seth calldata 'file(address, bool, string, string)' $POOL_ADDRESS $LIVE $POOL_SLUG $METADATA_HASH
 printf "\nThese are your calldata inputs:\npool address: $POOL_ADDRESS \nlive pool: $LIVE \npool slug: $POOL_SLUG \nmetadata hash: $METADATA_HASH\n"
-[[ $CALLDATA != "yes" ]] && echo "Do you want to proceed with updating the pool registry on $(seth chain)?"
+[[ $CALLDATA != "yes" ]] && echo "Do you want to proceed with updating the pool registry $REGISTRY_ADDRESS with pool $POOL_ADDRESS on $(seth chain)?"
 select yn in "yes" "no"
 case $yn in
     Yes ) seth send $REGISTRY_ADDRESS 'file(address, bool, string, string)' $POOL_ADDRESS $LIVE $POOL_SLUG $METADATA_HASH;;
