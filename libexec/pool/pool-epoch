@@ -8,7 +8,7 @@ const execSync = require('child_process').execSync
 const fetch = require('node-fetch')
 const multicall = require('@makerdao/multicall')
 const BigNumber = require('bignumber.js')
-const registryAddr = process.env['REGISTRY_ADDRESS']
+const registryAddr = process.env['POOL_REGISTRY_ADDRESS']
 
 let config = {
   multicallAddress: process.env['MULTICALL_ADDR'],

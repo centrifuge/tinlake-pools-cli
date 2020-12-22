@@ -8,11 +8,10 @@ This repo contains the cli for managing tinlake pools along with an on chain reg
 
 ## Options
 The following environment variables should be set:
-* NETWORK: `mainnet` or `kovan`
 * POOL_BASE_DIR: default to `pwd`, should be a checkout of tinlake-pools-(mainnet/kovan)
 * PINATA_SECRET_KEY
 * PINATA_API_KEY
-* REGISTRY_ADDRESS
+* POOL_REGISTRY_ADDRESS
     Address of the registry contract for the specific environment
 * ETH_CHAIN: defaults to `seth chain`, set to either `kovan` or `ethlive`
 

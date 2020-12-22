@@ -40,14 +40,14 @@ pool registry merge
 POOL_ADDRESS=$1
 if [ $# -lt 1 ]; then
   [[ $SKIP_CHECK != "yes" ]] && [[ $(pool registry check) == "up to date" ]] && echo "up to date" && exit
-  POOL_ADDRESS=$REGISTRY_ADDRESS
+  POOL_ADDRESS=$POOL_REGISTRY_ADDRESS
   LIVE=false
   POOL_METADATA=out/pools.json || POOL_METADATA=""
   POOL_SLUG='"registry"'
 else
   [[ $SKIP_CHECK != "yes" ]] && [[ $(pool registry check $1) == "up to date" ]] && echo "up to date" && exit
   LIVE=true
-  POOL_METADATA="$BASE_DIR/pools/$NETWORK/metadata/$1.json" || POOL_METADATA=""
+  POOL_METADATA="$POOL_BASE_DIR/metadata/$1.json" || POOL_METADATA=""
   POOL_SLUG="\"$(cat $POOL_METADATA | jq -r ".metadata.slug")\"" || POOL_SLUG=""
 fi
 
@@ -65,10 +65,10 @@ METADATA_HASH="\"$(pool ipfs save $POOL_METADATA)\""
 
 [[ $CALLDATA == "yes" ]] && seth calldata 'file(address, bool, string, string)' $POOL_ADDRESS $LIVE $POOL_SLUG $METADATA_HASH
 printf "\nThese are your calldata inputs:\npool address: $POOL_ADDRESS \nlive pool: $LIVE \npool slug: $POOL_SLUG \nmetadata hash: $METADATA_HASH\n"
-[[ $CALLDATA != "yes" ]] && echo "Do you want to proceed with updating the pool registry $REGISTRY_ADDRESS with pool $POOL_ADDRESS on $(seth chain)?"
+[[ $CALLDATA != "yes" ]] && echo "Do you want to proceed with updating the pool registry $POOL_REGISTRY_ADDRESS with pool $POOL_ADDRESS on $(seth chain)?"
 select yn in "yes" "no"
 case $yn in
-    Yes ) seth send $REGISTRY_ADDRESS 'file(address, bool, string, string)' $POOL_ADDRESS $LIVE $POOL_SLUG $METADATA_HASH;;
+    Yes ) seth send $POOL_REGISTRY_ADDRESS 'file(address, bool, string, string)' $POOL_ADDRESS $LIVE $POOL_SLUG $METADATA_HASH;;
     No ) exit;;
 esac
 
