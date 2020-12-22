@@ -23,10 +23,6 @@ Usage: pool <command> [<args>]
 
 Manage Tinlake pools the good old fashioned way
 
-Special commands:
-
-   --registry-address  prints current registry address
-
 Commands:
 
    data            fetch pool data from IPFS
@@ -36,7 +32,7 @@ Commands:
    registry        command-line util to manage pool metadata
    status          print a short summary for all known pools
 
-Report bugs to <https://github.com/centrifuge/tinlake-pools-cli>.
+
 ```
 
 ## PoolRegistry

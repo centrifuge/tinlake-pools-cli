@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /// pool-status -- print a short summary for all known pools
 /// Usage: pool status
+///
 
 const fs = require('fs')
 const execSync = require('child_process').execSync

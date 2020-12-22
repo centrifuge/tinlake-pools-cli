@@ -46,8 +46,3 @@ $(list-commands "${normal_commands[@]}")
 Report bugs to <$BUGS>.
 .
 
-#Special commands:
-#
-#$(list-commands "${special_commands[@]}")
-
-
