@@ -4,7 +4,6 @@
 ###    or: pool help <command>
 ###
 ### Manage Tinlake pools the good old fashioned way
-###
 
 export POOL_BASE_DIR="${POOL_BASE_DIR:-"$(pwd)"}"
 export ETH_CHAIN="${ETH_CHAIN:-"$(seth chain)"}"
