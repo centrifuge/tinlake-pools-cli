@@ -3,6 +3,7 @@
 /// Usage: pool epoch
 ///    or: pool epoch close
 ///    or: pool epoch close <pool id>
+///    or: pool epoch execute <pool id>
 
 const fs = require('fs')
 const execSync = require('child_process').execSync
@@ -95,7 +96,7 @@ function poolNeedsClose(pool) {
   return pool.seniorRedeem.plus(pool.seniorSupply)
          .plus(pool.juniorRedeem)
          .plus(pool.juniorSupply)
-         .gt(new BigNumber('0'))
+         .gt(new BigNumber('4'))
 }
 
 function poolReadyForClose(pool) {
@@ -121,6 +122,11 @@ function closeEpoch(id) {
   execSync(`ETH_GAS=11000000 seth send ${pools[id].coordinator} 'closeEpoch()'`, {stdio: 'inherit'})
 }
 
+function executeEpoch(id) {
+  execSync(`ETH_GAS=11000000 seth send ${pools[id].coordinator} 'executeEpoch()'`, {stdio: 'inherit'})
+}
+
+
 function forEachPool(fn) {
   watcher.subscribe(update => {
     let event = update.type.split('-')
@@ -144,6 +150,14 @@ if (process.argv[2] == 'close') {
     })
   } else {
     closeEpoch(process.argv[3])
+  }
+} else if (process.argv[2] == 'execute') {
+  if (process.argv.length == 3) {
+    console.error("Invalid usage of pool epoch")
+    execSync(`pool help epoch`,    {stdio: 'inherit'})
+    process.exit(1)
+  } else {
+    executeEpoch(process.argv[3])
   }
 } else if (process.argv.length == 2) {
   forEachPool(printEpochStatus)
