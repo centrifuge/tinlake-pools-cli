@@ -24,6 +24,8 @@ let pools = Object.keys(poolConfig).reduce((l, p) => {
       juniorToken: addr.JUNIOR_TOKEN,
       seniorToken: addr.SENIOR_TOKEN,
       assessor: addr.ASSESSOR,
+      reserve: addr.RESERVE,
+      feed: addr.FEED,
   }
   l[data.root] = data
   return l
@@ -70,7 +72,18 @@ Object.values(pools).forEach(p => {
       returns: [
         [`${p.root}-juniorTotalSupply`, val => val ],
     ]})
-
+    calls.push({
+      target: p.reserve,
+      call: ['totalBalance()(uint)'],
+      returns: [
+        [`${p.root}-reserveTotalBalance`, val => val ],
+    ]})
+    calls.push({
+      target: p.feed,
+      call: ['currentNAV()(uint)'],
+      returns: [
+        [`${p.root}-feedCurrentNAV`, val => val ],
+    ]})
 
 })
 
@@ -102,6 +115,10 @@ let printInYellow = (txt) => console.log("\x1b[33m%s\x1b[0m", txt)
 
 let printPoolDetails = (pool) => {
   console.log(`${pool.name} (${pool.root})\n`)
+
+  let reserveRatio = new BigNumber(pool.reserveTotalBalance).div(new BigNumber(pool.reserveTotalBalance).plus(new BigNumber(pool.feedCurrentNAV))).times(new BigNumber('100'))
+
+  console.log(`Cash Drag: ${formatNum(reserveRatio)}% Reserve: ${formatWeiNum(pool.reserveTotalBalance)} NAV: ${formatWeiNum(pool.feedCurrentNAV)}\n`)
   console.log(`Junior:`)
   if (pool.juniorSupply > 0 || pool.juniorRedeem > 0) {
     printInYellow(`  Supply: ${formatWeiNum(pool.juniorSupply)} Redeem: ${formatWeiNum(pool.juniorRedeem)}`)
@@ -116,7 +133,7 @@ let printPoolDetails = (pool) => {
   }
   let seniorValue = rayToDecimal(pool.seniorTokenPrice).times(weiToDecimal(pool.seniorTotalSupply))
   console.log(`  DAI ${formatNum(seniorValue)} (Price:  ${formatNum(rayToDecimal(pool.seniorTokenPrice), 4)}) `)
-  console.log('\n'+'-'.repeat(80)+'\n')
+  console.log('-'.repeat(80))
 }
 
 watcher.subscribe(update => {
