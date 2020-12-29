@@ -51,12 +51,13 @@ else
   POOL_SLUG="\"$(cat $POOL_METADATA | jq -r ".metadata.slug")\"" || POOL_SLUG=""
 fi
 
-if [ POOL_METADATA="" ]; then
-    echo "Your pool metadata file is empty!"
+
+if [ $POOL_METADATA = "" ]; then
+    echo "Your pool metadata file at $POOL_METADATA is empty!"
     exit 1
 fi
 
-if [ POOL_SLUG="" ]; then
+if [ $POOL_SLUG = "" ]; then
     echo "Your pool slug is empty!"
     exit 1
 fi
@@ -64,10 +65,13 @@ fi
 METADATA_HASH="\"$(pool ipfs save $POOL_METADATA)\""
 
 [[ $CALLDATA == "yes" ]] && printf "\nThese are your calldata inputs:\npool address: $POOL_ADDRESS \nlive pool: $LIVE \npool slug: $POOL_SLUG \nmetadata hash: $METADATA_HASH\n" && seth calldata 'file(address, bool, string, string)' $POOL_ADDRESS $LIVE $POOL_SLUG $METADATA_HASH
-[[ $CALLDATA != "yes" ]] && echo "Do you want to proceed with updating the pool registry $POOL_REGISTRY_ADDRESS with pool $POOL_ADDRESS on $(seth chain)?"
+[[ $CALLDATA != "yes" ]] && echo "Do you want to proceed with updating the pool registry $POOL_REGISTRY_ADDRESS with pool $POOL_ADDRESS on $(seth chain), with metadata $METADATA_HASH?"
+
 select yn in "yes" "no"
-case $yn in
-    Yes ) seth send $POOL_REGISTRY_ADDRESS 'file(address, bool, string, string)' $POOL_ADDRESS $LIVE $POOL_SLUG $METADATA_HASH;;
-    No ) exit;;
-esac
+do
+  case $yn in
+      "yes") seth send $POOL_REGISTRY_ADDRESS 'file(address, bool, string, string)' $POOL_ADDRESS $LIVE $POOL_SLUG $METADATA_HASH;;
+      "no") exit;;
+  esac
+done
 
