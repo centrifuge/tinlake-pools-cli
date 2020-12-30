@@ -114,25 +114,23 @@ let formatNum = (num, decimals) => {
 let printInYellow = (txt) => console.log("\x1b[33m%s\x1b[0m", txt)
 
 let printPoolDetails = (pool) => {
-  console.log(`${pool.name} (${pool.root})\n`)
+  console.log(`${pool.name} (${pool.root})`)
 
   let reserveRatio = new BigNumber(pool.reserveTotalBalance).div(new BigNumber(pool.reserveTotalBalance).plus(new BigNumber(pool.feedCurrentNAV))).times(new BigNumber('100'))
-
-  console.log(`Cash Drag: ${formatNum(reserveRatio)}% Reserve: ${formatWeiNum(pool.reserveTotalBalance)} NAV: ${formatWeiNum(pool.feedCurrentNAV)}\n`)
-  console.log(`Junior:`)
-  if (pool.juniorSupply > 0 || pool.juniorRedeem > 0) {
-    printInYellow(`  Supply: ${formatWeiNum(pool.juniorSupply)} Redeem: ${formatWeiNum(pool.juniorRedeem)}`)
-  }
   let juniorValue = rayToDecimal(pool.juniorTokenPrice).times(weiToDecimal(pool.juniorTotalSupply))
-
-  console.log(`  DAI ${formatNum(juniorValue)} (Price: ${formatNum(rayToDecimal(pool.juniorTokenPrice), 4)})`)
-
-  console.log(`Senior:`)
-  if (pool.seniorSupply > 0 || pool.seniorRedeem > 0) {
-    printInYellow(`  Supply: ${formatWeiNum(pool.seniorSupply)} Redeem: ${formatWeiNum(pool.seniorRedeem)}`)
-  }
   let seniorValue = rayToDecimal(pool.seniorTokenPrice).times(weiToDecimal(pool.seniorTotalSupply))
-  console.log(`  DAI ${formatNum(seniorValue)} (Price:  ${formatNum(rayToDecimal(pool.seniorTokenPrice), 4)}) `)
+
+
+  console.log(`Cash Drag: ${formatNum(reserveRatio)}% Reserve: ${formatWeiNum(pool.reserveTotalBalance)} NAV: ${formatWeiNum(pool.feedCurrentNAV)}`)
+  console.log(`Junior: DAI ${formatNum(juniorValue)} (Price ${formatNum(rayToDecimal(pool.juniorTokenPrice), 4)}) - Senior: DAI ${formatNum(seniorValue)} (Price:  ${formatNum(rayToDecimal(pool.seniorTokenPrice), 4)})`)
+
+  if (pool.juniorSupply > 0 || pool.juniorRedeem > 0) {
+    printInYellow(`Junior Supply: ${formatWeiNum(pool.juniorSupply)} Redeem: ${formatWeiNum(pool.juniorRedeem)}`)
+  }
+
+  if (pool.seniorSupply > 0 || pool.seniorRedeem > 0) {
+    printInYellow(`Senior Supply: ${formatWeiNum(pool.seniorSupply)} Redeem: ${formatWeiNum(pool.seniorRedeem)}`)
+  }
   console.log('-'.repeat(80))
 }
 
