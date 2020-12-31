@@ -39,24 +39,28 @@ function hash() {
 }
 
 function save() {
-    const file = fs.createReadStream(process.argv[3])
-    const pinata = pinataSDK(process.env['PINATA_API_KEY'], process.env['PINATA_SECRET_KEY'])
+    let metadata = JSON.parse(fs.readFileSync(process.argv[3]))
+    if (process.argv.length > 5) {
+      metadata['profile'] = process.argv[5].slice(1, -1) // Remove double quotes
+    }
 
+    const pinata = pinataSDK(process.env['PINATA_API_KEY'], process.env['PINATA_SECRET_KEY'])
 
     const chain = execSync('seth chain').toString().slice(0,-1)
     const registryAddr = process.env['POOL_REGISTRY_ADDRESS']
-    const fileName = `${chain}-${registryAddr}-${process.argv[2]}`
+    const fileName = `${chain}-${registryAddr}-${process.argv[2]}${process.argv.length > 3 ? `-${process.argv[4]}` : ''}`
 
-    const options = {
+    const body = {
         pinataMetadata: {
             name: fileName,
         },
         pinataOptions: {
             cidVersion: 0
-        }
+        },
+        pinataContent: metadata
     }
 
-    pinata.pinFileToIPFS(file, options).then((result) => {
+    pinata.pinJSONToIPFS(body).then((result) => {
         console.log(result.IpfsHash)
         return result.IpfsHash})
     .then((hash) => {
