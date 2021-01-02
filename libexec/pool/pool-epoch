@@ -87,6 +87,16 @@ Object.values(pools).forEach(p => {
       returns: [[`${p.root}-minimumEpochTime`]]
     })
     calls.push({
+      target: p.coordinator,
+      call: ['submissionPeriod()(bool)'],
+      returns: [[`${p.root}-submissionPeriod`]]
+    })
+    calls.push({
+      target: p.coordinator,
+      call: ['minChallengePeriodEnd()(uint)'],
+      returns: [[`${p.root}-minChallengePeriodEnd`]]
+    })
+    calls.push({
       call: ['getCurrentBlockTimestamp()(uint256)'],
       returns: [[`${p.root}-timestamp`]]
     })
@@ -100,7 +110,11 @@ function poolNeedsClose(pool) {
 }
 
 function poolReadyForClose(pool) {
-  return pool.timestamp.gt(pool.lastEpochClosed.plus(pool.minimumEpochTime))
+  return pool.timestamp.gt(pool.lastEpochClosed.plus(pool.minimumEpochTime)) && pool.submissionPeriod == false
+}
+
+function poolReadyForExecute(pool) {
+  return pool.timestamp.gt(pool.minChallengePeriodEnd) && pool.minChallengePeriodEnd.gt(new BigNumber('0'))
 }
 
 
@@ -115,26 +129,32 @@ function printEpochStatus(pool) {
     if (pool.seniorSupply > 0 || pool.seniorRedeem > 0) {
       console.log(`Senior Supply: ${formatWeiNum(pool.seniorSupply)} Redeem: ${formatWeiNum(pool.seniorRedeem)}`)
     }
-    console.log(`Ready for close: ${printInYellow(poolReadyForClose(pool))}`)
+    let readyClose = poolReadyForClose(pool) ? printInYellow("close") : ""
+    let submissionPeriod = pool.submissionPeriod ? printInYellow("submission") : ""
+    let readyExecute = poolReadyForExecute(pool) ? printInYellow("execute") : ""
+    console.log(`Ready: ${readyClose} ${readyExecute} ${submissionPeriod}`)
 }
 
-function closeEpoch(id) {
-  execSync(`ETH_GAS=11000000 seth send ${pools[id].coordinator} 'closeEpoch()'`, {stdio: 'inherit'})
+function closeEpoch(pool) {
+  execSync(`ETH_GAS=11000000 seth send ${pool.coordinator} 'closeEpoch()'`, {stdio: 'inherit'})
 }
 
-function executeEpoch(id) {
-  execSync(`ETH_GAS=11000000 seth send ${pools[id].coordinator} 'executeEpoch()'`, {stdio: 'inherit'})
+function executeEpoch(pool) {
+  execSync(`ETH_GAS=400000 seth send ${pool.coordinator} 'executeEpoch()'`, {stdio: 'inherit'})
 }
 
 
-function forEachPool(fn) {
+function withPoolData(fn) {
   watcher.subscribe(update => {
     let event = update.type.split('-')
-    pools[event[0]][event[1]] = new BigNumber(update.value.toString())
-  });
+    let value = new BigNumber(update.value.toString())
+    if(event[1] == 'submissionPeriod') value = update.value
+
+    pools[event[0]][event[1]] = value;
+  })
 
   watcher.start().then(function () {
-    Object.values(pools).filter(poolNeedsClose).forEach(fn)
+    fn(pools)
     process.exit()
   }).catch(err => {
     console.error(err)
@@ -142,14 +162,28 @@ function forEachPool(fn) {
   })
 }
 
+
+function forEachPool(fn) {
+  withPoolData((pools) => {
+    Object.values(pools).filter(poolNeedsClose).forEach(fn)
+  })
+}
+
 if (process.argv[2] == 'close') {
   if (process.argv.length == 3) {
     forEachPool((pool) => {
       console.log(`Closing epoch for ${pool.name}`)
-      closeEpoch(pool.root, true)
+      closeEpoch(pool, true)
     })
   } else {
-    closeEpoch(process.argv[3])
+    withPoolData((pools) => {
+      let pool = pools[process.argv[3]]
+      if (!poolNeedsClose(pool) || !poolReadyForClose(pool)) {
+        console.error("Pool not ready for close or does not need close")
+        process.exit(1)
+      }
+      closeEpoch(pool)
+    })
   }
 } else if (process.argv[2] == 'execute') {
   if (process.argv.length == 3) {
@@ -157,7 +191,14 @@ if (process.argv[2] == 'close') {
     execSync(`pool help epoch`,    {stdio: 'inherit'})
     process.exit(1)
   } else {
-    executeEpoch(process.argv[3])
+    withPoolData((pools) => {
+      let pool = pools[process.argv[3]]
+      if (!poolReadyForExecute(pool)) {
+        console.error("Pool not ready for execute")
+        process.exit(1)
+      }
+      executeEpoch(pool)
+    })
   }
 } else if (process.argv.length == 2) {
   forEachPool(printEpochStatus)
